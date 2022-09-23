@@ -37,7 +37,6 @@ emailext body: '''Hi All,
 
 Check Build status.
 Skobaby''', recipientProviders: [buildUser(), developers(), brokenTestsSuspects(), brokenBuildSuspects(), contributor()], subject: 'build status', to: 'tesla-appteam@gmail.com'
-
-  }
+ }
+ */
 }
-*/
