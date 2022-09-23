@@ -1,0 +1,41 @@
+node{
+  def mavenHome = tool name: 'maven3.8.6'
+  stage('1cloneCode'){
+    git "https://github.com/skobaby/maven-web-application"
+  }
+  stage('2Test&Build'){
+    sh "${mavenHome}/bin/mvn clean package"
+    //bat "${mavenHome}/bin/mvn clean package"
+  }
+  stage('3codeQuality'){
+    sh "${mavenHome}/bin/mvn  sonar:sonar"
+  }
+stage('4uploadArtifacts'){
+    //sh "${mavenHome}/bin/mvn deploy"
+    //http://3.98.136.236:8191/repository/tesla-fe-snapshots/
+    //http://3.98.136.236:8191/repository/tesla-fe-releases/
+    // vi pom.xml and added repository details   
+    // vi setting.xml and add AUTHENTICATION details  
+  }
+ stage('5deploy2UAT'){
+    sh "echo 'deploy to UAT'  "
+    deploy adapters: [tomcat8(credentialsId: 'tomcat credentials', path: '', url: 'http://3.98.142.64:8080/')], contextPath: null, war: 'target/*war'
+  }
+stage('6approvalGate'){
+    sh "echo 'ready for review' "
+    timeout(time:5, unit:'DAYS') {
+    input message: 'Application ready for deployment, Please review and approve'
+ }
+}
+  stage('7deploy2Prod'){
+    sh "sleep  50"
+    deploy adapters: [tomcat8(credentialsId: 'tomcat credentials', path: '', url: 'http://3.98.142.64:8080/')], contextPath: null, war: 'target/*war'
+}
+stage('8emailNotification'){
+emailext body: '''Hi All,
+
+Check Build status.
+Skobaby''', recipientProviders: [buildUser(), developers(), brokenTestsSuspects(), brokenBuildSuspects(), contributor()], subject: 'build status', to: 'tesla-appteam@gmail.com'
+
+  }
+}
